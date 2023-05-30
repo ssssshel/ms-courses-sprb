@@ -29,6 +29,9 @@ public class CourseService implements CourseServiceInter {
 
       List<CourseDto> coursesDtoList = new ArrayList<CourseDto>();
       for (CourseModel courseObject : coursesList) {
+        if (courseObject.getState() == false) {
+          continue;
+        }
         coursesDtoList.add(CourseDto.builder()
             .id(courseObject.getId())
             .name(courseObject.getName())
@@ -46,8 +49,8 @@ public class CourseService implements CourseServiceInter {
   public ResponseDto getCourseById(Long id) {
     try {
       CourseModel courseModel = courseRespository.findById(id).orElse(null);
-      if (courseModel == null) {
-        return Utils.getResponse(HttpStatus.NOT_FOUND, courseModel, false);
+      if (courseModel == null || courseModel.getState() == false) {
+        return Utils.getResponse(HttpStatus.NOT_FOUND, null, false);
       }
       CourseDto courseDto = CourseDto.builder()
           .id(courseModel.getId())
@@ -106,7 +109,8 @@ public class CourseService implements CourseServiceInter {
         return Utils.getResponse(HttpStatus.NOT_FOUND, courseModel, false);
       }
 
-      courseRespository.delete(courseModel);
+      courseModel.setState(false);
+      courseRespository.save(courseModel);
       return Utils.getResponse(HttpStatus.OK, courseModel, true);
     } catch (Exception e) {
       return Utils.getResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), false);
